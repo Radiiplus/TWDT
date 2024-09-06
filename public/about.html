@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Riff Connect</title>
+    <script src="src/background.js" type="module" defer></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+    <style>
+        body {
+            background-color: transparent;
+            color: white;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: 'Prata', 'Roboto', sans-serif;
+            position: relative;
+        }
+        .about-container {
+            padding: 5%;
+            text-align: center;
+            background-color: rgba(255, 255, 255, 0.3);
+            border-radius: 25px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            position: relative;
+            z-index: 1;
+            margin-bottom: 20%;
+        }
+        .about-title {
+            font-size: 36px;
+            margin-bottom: 20px;
+            color: white;
+        }
+        .about-description {
+            font-size: 18px;
+            margin-bottom: 30px;
+        }
+        .button-container {
+            display: flex;
+            justify-content: center;
+            gap: 5%;
+        }
+        .button {
+            font-size: 16px;
+            border-radius: 15px;
+            text-decoration: none;
+            padding: 10px 20px;
+            background-color: rgba(255, 255, 255, 0.6);
+            color: black;
+            border: 1px solid rgba(255, 255, 255, 0.9);
+        }
+        .button.is-primary {
+            background-color: rgba(255, 255, 255, 0.5);
+        }
+        .button.is-link {
+            background-color: rgba(255, 255, 255, 0.5);
+        }
+        .circle-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+    </style>
+</head>
+<body>
+    <section class="section">
+        <div class="container about-container">
+            <h1 class="title about-title">Welcome to Riff Connect</h1>
+            <p class="about-description">
+                Riff Connect is a vibrant music community where artists and listeners come together
+                to share, discover, and celebrate music. Whether you're a musician looking to connect
+                with other artists or a listener searching for new tunes, Riff Connect is your space to 
+                thrive and engage.
+            </p>
+            <div class="button-container">
+                <a href="/signup" class="button is-primary">Sign Up</a>
+                <a href="/login" class="button is-link">Login</a>
+            </div>
+        </div>
+    </section>
+    <div class="circle-container">
+        <div class="blurred-circle circle1"></div>
+        <div class="blurred-circle circle2"></div>
+        <div class="blurred-circle circle3"></div>
+    </div>
+</body>
+</html>

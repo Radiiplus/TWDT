@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registration</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+    <script src="src/layout.js" defer></script>
+    <script src="src/background.js" type="module" defer></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <style>
+        body {
+            background-color: #333;
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .circle-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 80%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .flex-body {
+            display: flex;
+            flex-direction: column;
+            height: 90vh;
+        }
+
+        .signup-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .signup-card {
+            background-color: rgba(255, 255, 255, 0.4);
+            border: 1px solid gray;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            border-radius: 20px;
+            padding: 5%;
+            color: gray;
+            width: 100%;
+            position: relative;
+        }
+
+        .signup-card h2 {
+            text-align: center;
+            margin-bottom: 5%;
+            font-weight: bold;
+            font-size: 1.5rem;
+        }
+
+        .signup-card form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .signup-card input {
+            padding: 3.5%;
+            margin-bottom: 15px;
+            border: 0.8px solid #ddd;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .signup-card input::placeholder {
+            color: #888;
+        }
+
+        .signup-card input.invalid {
+            border-color: red;
+        }
+
+        .signup-card input.valid {
+            border-color: green;
+        }
+
+        .error-message {
+            color: red;
+            font-size: 14px;
+            margin-bottom: 15px;
+            text-align: center;
+            background-color: rgba(255, 0, 0, 0.1);
+            padding: 5px;
+            border-radius: 5px;
+            display: none;
+            white-space: pre-wrap; 
+        }
+
+        .signup-card button {
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin-top: 3%;
+            position: relative;
+            overflow: hidden;
+            text-align: center;
+            opacity: 70%;
+        }
+
+        .signup-card button:hover {
+            background-color: #0056b3;
+        }
+
+        .signup-card .forgot-password,
+        .signup-card .login-link {
+            text-align: center;
+            margin-top: 15px;
+            color: #007bff;
+            cursor: pointer;
+        }
+
+        .signup-card .forgot-password:hover,
+        .signup-card .login-link:hover {
+            text-decoration: underline;
+        }
+
+        .loading-spinner {
+            display: none;
+            position: absolute;
+            top: 20%;
+            left: 45%;
+            transform: translate(-50%, -50%);
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top: 3px solid #007bff;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .signup-card button.loading span {
+            visibility: hidden;
+        }
+
+        .nav-icon-container {
+            opacity: 0%;
+        }
+    </style>
+</head>
+<body>
+    <div class="circle-container">
+        <div class="blurred-circle circle1"></div>
+        <div class="blurred-circle circle2"></div>
+        <div class="blurred-circle circle3"></div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            createLayout(false, false);
+
+            const mainContent = document.querySelector('.flex-body');
+            if (mainContent) {
+                mainContent.innerHTML = `
+                    <div class="signup-container">
+                        <div class="signup-card">
+                            <h2>Registration</h2>
+                            <form id="signupForm">
+                                <input type="text" id="username" name="username" placeholder="Username" required>
+                                <input type="email" id="email" name="email" placeholder="Email" required>
+                                <input type="password" id="password" name="password" placeholder="Password" required>
+                                <input type="password" id="confirm-password" name="confirm-password" placeholder="Confirm Password" required>
+                                <div id="error-message" class="error-message"></div>
+                                <button type="submit" id="signupButton">
+                                    <span>Register</span>
+                                    <div id="loading-spinner" class="loading-spinner"></div>
+                                </button>
+                                <p class="login-link">Already have an account? <a href="/login">Login</a></p>
+                            </form>
+                        </div>
+                    </div>
+                `;
+            }
+        });
+
+        async function validateField(fieldId, url, fieldType) {
+            const field = document.getElementById(fieldId);
+            const value = field.value;
+            const errorDisplay = document.getElementById('error-message');
+
+            if (value.length === 0) return;
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ [fieldType]: value })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    if (data.exists) {
+                        field.classList.add('invalid');
+                        field.classList.remove('valid');
+                        errorDisplay.textContent = data.message;
+                        errorDisplay.style.display = 'block';
+                    } else {
+                        field.classList.add('valid');
+                        field.classList.remove('invalid');
+                        errorDisplay.style.display = 'none';
+                    }
+                } else {
+                    field.classList.add('invalid');
+                    errorDisplay.textContent = 'An unexpected error occurred.';
+                    errorDisplay.style.display = 'block';
+                }
+            } catch (error) {
+                field.classList.add('invalid');
+                errorDisplay.textContent = 'Network or server error.';
+                errorDisplay.style.display = 'block';
+            }
+        }
+
+        async function validateUsername() {
+            await validateField('username', '/access/check', 'username');
+        }
+
+        async function validateEmail() {
+            await validateField('email', '/access/check', 'email');
+        }
+
+        function validatePasswords() {
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+            const passwordField = document.getElementById('password');
+            const confirmPasswordField = document.getElementById('confirm-password');
+            const errorMessage = document.getElementById('error-message');
+
+            passwordField.classList.remove('invalid', 'valid');
+            confirmPasswordField.classList.remove('invalid', 'valid');
+            errorMessage.textContent = '';
+            errorMessage.style.display = 'none';
+
+            if (password !== confirmPassword) {
+                passwordField.classList.add('invalid');
+                confirmPasswordField.classList.add('invalid');
+                errorMessage.textContent = 'Passwords do not match.';
+                errorMessage.style.display = 'block';
+            } else if (password && confirmPassword) {
+                passwordField.classList.add('valid');
+                confirmPasswordField.classList.add('valid');
+            }
+        }
+
+        let isSubmitting = false;
+
+        async function handleFormSubmission(event) {
+            event.preventDefault();
+
+            if (isSubmitting) return;
+            isSubmitting = true;
+
+            const button = document.getElementById('signupButton');
+            const loadingSpinner = document.getElementById('loading-spinner');
+            const errorMessage = document.getElementById('error-message');
+
+            button.classList.add('loading');
+            loadingSpinner.style.display = 'block';
+
+            const formData = {
+                username: document.getElementById('username').value,
+                email: document.getElementById('email').value,
+                password: document.getElementById('password').value
+            };
+
+            try {
+                const response = await fetch('/access/signup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    window.location.href = '/confirm';
+                } else {
+                    errorMessage.style.display = 'block';
+                    errorMessage.innerHTML = formatErrorMessage(data);
+                }
+            } catch (error) {
+                console.error('Request Error:', error);
+                errorMessage.style.display = 'block';
+                errorMessage.textContent = 'An error occurred during registration. Please try again later.';
+            } finally {
+                button.classList.remove('loading');
+                loadingSpinner.style.display = 'none';
+                isSubmitting = false;
+            }
+        }
+
+        function formatErrorMessage(data) {
+            let formattedMessage = '';
+            for (const key in data) {
+                if (data.hasOwnProperty(key)) {
+                    formattedMessage += `<strong>${key}</strong>: ${data[key]}<br>`;
+                }
+            }
+            return formattedMessage;
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('signupForm');
+            form.addEventListener('submit', handleFormSubmission);
+
+            const usernameField = document.getElementById('username');
+            const emailField = document.getElementById('email');
+            const passwordField = document.getElementById('password');
+            const confirmPasswordField = document.getElementById('confirm-password');
+
+            usernameField.addEventListener('input', validateUsername);
+            emailField.addEventListener('input', validateEmail);
+            passwordField.addEventListener('input', validatePasswords);
+            confirmPasswordField.addEventListener('input', validatePasswords);
+        });
+    </script>
+</body>
+</html>

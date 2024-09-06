@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+    <script src="src/layout.js" defer></script>
+    <script src="src/menu.js" defer></script>
+    <script src="src/background.js" defer></script>
+    <script src="src/toast.js" defer></script>
+    <script src="module/message.js" defer></script>
+    <script src="src/validate.js"></script>
+    <script src="src/user.js"></script>
+    <style>
+        body { color: white; }
+        .flex-body { margin-right: 60px; display: flex; flex-direction: column; height: calc(100vh - 120px); }
+        .fixed-container { flex: 1; overflow-y: auto; min-height: 0; background-color: rgba(255, 255, 255, 0.1); margin-bottom: 1%; border: 1.5px solid rgba(255, 255, 255, 0.3); border-radius: 20px; display: flex; flex-direction: column; align-items: stretch; justify-content: flex-start; padding: 10px; }
+        .message-container { width: 60%; padding: 3%; border-radius: 20px; background-color: rgba(255, 255, 255, 0.1); color: white; margin-bottom: 2%; margin-top: 2%; position: relative; }
+        .left-message { align-self: flex-start; }
+        .right-message { align-self: flex-end; }
+        .username { position: auto; top: -50%; font-size: 0.9em; font-weight: bold; }
+        .timestamp { position: auto; bottom: -50%; font-size: 0.8em; opacity: 0.7; font-style: italic; }
+        .left-message .username, .left-message .timestamp { left: 10px; }
+        .right-message .username, .right-message .timestamp { right: 10px; }
+        .expandable-container { flex: 0 1 auto; min-height: 50px; max-height: 30vh; overflow-y: auto; background-color: rgba(255, 255, 255, 0.2); display: flex; align-items: center; padding: 0.5rem; border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 15px; }
+        .input-field { flex: 1; padding: 2%; background-color: rgba(255, 255, 255, 0.1); color: white; border: 1px solid rgba(255, 255, 255, 0.5); border-radius: 25px; outline: none; margin-right: 10px; }
+        .send-icon { font-size: 24px; cursor: pointer; color: white; }
+        .message-content { padding: 10px; background-color: rgba(255, 255, 255, 0.3); border-radius: 15px; margin: 5px 0; }
+    </style>
+</head>
+<body>
+    <script src="src/analytic.js" defer></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            createLayout(false, true);
+            setTimeout(() => {
+                document.querySelector('.flex-body').innerHTML = `
+                    <div class="fixed-container" id="fixed-container"></div>
+                    <div class="expandable-container" id="expandable-container">
+                        <input type="text" class="input-field" placeholder="Type your message...">
+                        <span class="material-icons-outlined send-icon">send</span>
+                    </div>
+                `;
+                showToast('Refresh the page once to align everything. If you have done it before, ignore this message.', 3000);
+            }, 0);
+
+            fetchUserData().then(data => {
+                if (data?.user?.username) {
+                    sessionStorage.setItem('username', data.user.username);
+                } else {
+                    console.error('Failed to fetch or store username.');
+                }
+            }).catch(error => console.error('Error fetching user data:', error));
+
+            connectToSocketIO();
+        });
+
+        const seenMessageIds = new Set();
+
+        const connectToSocketIO = () => {
+            const socket = io('/socket');
+            socket.on('message', data => {
+                if (data?.id && !seenMessageIds.has(data.id)) {
+                    seenMessageIds.add(data.id);
+                    handleIncomingMessage(data);
+                    saveLastReadMessage(data.id);
+                }
+            });
+            socket.on('connect_error', error => {
+                console.error('Socket.IO connection error:', error);
+                showToast('Connection error. Please try refreshing the page.', 3000);
+            });
+            socket.on('disconnect', () => console.log('Socket.IO disconnected'));
+        };
+
+        const escapeHTML = (unsafeText) => {
+            return unsafeText
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        };
+
+        const handleIncomingMessage = data => {
+            if (!data?.username || !data?.message || !data?.timestamp || !data.message.trim()) {
+                console.error('Invalid or empty message data:', data);
+                return;
+            }
+
+            const isCurrentUser = data.username === sessionStorage.getItem('username');
+            const messagePositionClass = isCurrentUser ? 'right-message' : 'left-message';
+
+            const messageContainer = document.createElement('div');
+            messageContainer.className = `message-container ${messagePositionClass}`;
+
+            const sanitizedMessage = escapeHTML(data.message); 
+
+            messageContainer.innerHTML = `
+                <span class="username">${escapeHTML(data.username)}</span>
+                <div class="message-content"><p>${sanitizedMessage}</p></div>
+                <span class="timestamp">${new Date(data.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+            `;
+            document.getElementById('fixed-container').appendChild(messageContainer);
+            document.getElementById('fixed-container').scrollTop = document.getElementById('fixed-container').scrollHeight;
+        };
+
+        const saveLastReadMessage = messageId => localStorage.setItem('lastReadMessageId', messageId);
+    </script>
+</body>
+</html>

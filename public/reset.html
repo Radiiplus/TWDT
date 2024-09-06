@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Password Reset</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+    <script src="src/layout.js" defer></script>
+    <script src="src/background.js" type="module" defer></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <style>
+        body {
+            background-color: #333;
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .circle-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 80%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .reset-card {
+            background: rgba(255, 255, 255, 0.5);
+            border: 1px solid gray;
+            border-radius: 15px;
+            padding: 5%;
+            margin-bottom: auto;
+            margin-right: auto;
+            margin-left: auto;
+            margin-top: 60%;
+            color: Gray;
+            width: 85%;
+            position: relative;
+        }
+
+        .reset-card h2 {
+            text-align: center;
+            margin-bottom: 5%;
+            font-weight: bold;
+            font-size: 1.5rem;
+        }
+
+        .reset-card form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .reset-card input {
+            padding: 3.5%;
+            margin-bottom: 15px;
+            border: 0.8px solid #ddd;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .reset-card input::placeholder {
+            color: #888;
+        }
+
+        .reset-card input.invalid {
+            border-color: red;
+        }
+
+        .reset-card input.valid {
+            border-color: green;
+        }
+
+        .error-message {
+            color: red;
+            font-size: 14px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .reset-card button {
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin-top: 3%;
+            position: relative;
+            overflow: hidden;
+            text-align: center;
+            opacity: 70%;
+        }
+
+        .reset-card button:hover {
+            background-color: #0056b3;
+        }
+
+        .instruction {
+            color: #007bff;
+            font-size: 0.9rem;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .nav-icon-container {
+            opacity: 0%;
+        }
+    </style>
+</head>
+<body>
+    
+    <div class="circle-container">
+        <div class="blurred-circle circle1"></div>
+        <div class="blurred-circle circle2"></div>
+        <div class="blurred-circle circle3"></div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            createLayout(false, false); 
+
+            const mainContent = document.querySelector('.flex-body');
+            if (mainContent) {
+                mainContent.innerHTML = `
+                    <div class="reset-card">
+                        <h2>Password Reset</h2>
+                        <form id="emailForm">
+                            <input type="email" id="emailInput" placeholder="Enter Your Email" required>
+                            <div class="instruction">Enter your email to locate your account.</div>
+                            <div id="email-error-message" class="error-message"></div>
+                            <button type="submit">Next</button>
+                        </form>
+                        <form id="emojiForm" style="display: none;">
+                            <input type="text" id="emojiInput" placeholder="Enter 6 Emoji Combination" required>
+                            <div class="instruction">Enter your 6-emoji combination for verification.</div>
+                            <div id="error-message" class="error-message"></div>
+                            <button type="submit">Verify</button>
+                        </form>
+                        <form id="passwordForm" style="display: none;">
+                            <input type="password" id="newPassword" placeholder="New Password" required>
+                            <input type="password" id="confirmPassword" placeholder="Confirm Password" required>
+                            <div class="instruction">Enter and confirm your new password.</div>
+                            <div id="password-error-message" class="error-message"></div>
+                            <button type="submit">Reset Password</button>
+                        </form>
+                    </div>
+                `;
+            }
+        });
+    </script>
+
+    <script>
+        function sanitizeInput(input) {
+            return input.replace(/[^a-zA-Z0-9\s\p{Emoji_Presentation}]/gu, '');
+        }
+
+        function handleEmailSubmission(event) {
+            event.preventDefault();
+
+            const emailInput = document.getElementById('emailInput').value.trim();
+            const emailErrorMessage = document.getElementById('email-error-message');
+
+            if (emailInput === "") {
+                emailErrorMessage.textContent = 'Please enter your email.';
+                return;
+            }
+
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', '/access/check', true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === XMLHttpRequest.DONE) {
+                    if (xhr.status === 200) {
+                        localStorage.setItem('resetEmail', emailInput);
+                        document.getElementById('emailForm').style.display = 'none';
+                        document.getElementById('emojiForm').style.display = 'block';
+                    } else {
+                        emailErrorMessage.textContent = 'Account not found. Please try again.';
+                    }
+                }
+            };
+
+            xhr.onerror = function() {
+                emailErrorMessage.textContent = 'Network error, please try again.';
+            };
+
+            xhr.send(JSON.stringify({ email: emailInput }));
+        }
+
+        function handleEmojiSubmission(event) {
+            event.preventDefault();
+
+            const storedEmail = localStorage.getItem('resetEmail');
+            if (!storedEmail) {
+                document.getElementById('error-message').textContent = 'Email not found in storage. Please start over.';
+                return;
+            }
+
+            const emojiInput = sanitizeInput(document.getElementById('emojiInput').value.trim());
+            
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', '/access/identify', true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === XMLHttpRequest.DONE) {
+                    if (xhr.status === 200) {
+                        const response = JSON.parse(xhr.responseText);
+                        localStorage.setItem('resetToken', response.token);
+                        setTimeout(() => localStorage.removeItem('resetToken'), 10 * 60 * 1000);
+                        document.getElementById('emojiForm').style.display = 'none';
+                        document.getElementById('passwordForm').style.display = 'block';
+                    } else {
+                        document.getElementById('error-message').textContent = 'Verification failed. Please try again.';
+                    }
+                }
+            };
+
+            xhr.onerror = function() {
+                document.getElementById('error-message').textContent = 'Network error, please try again.';
+            };
+
+            xhr.send(JSON.stringify({ email: storedEmail, emojis: emojiInput }));
+        }
+
+        function handlePasswordResetSubmission(event) {
+            event.preventDefault();
+
+            const token = localStorage.getItem('resetToken');
+            const newPassword = document.getElementById('newPassword').value.trim();
+            const confirmPassword = document.getElementById('confirmPassword').value.trim();
+
+            if (!token) {
+                document.getElementById('password-error-message').textContent = 'Token expired or missing. Please start over.';
+                return;
+            }
+
+            if (newPassword !== confirmPassword) {
+                document.getElementById('password-error-message').textContent = 'Passwords do not match.';
+                return;
+            }
+
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', '/access/password', true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === XMLHttpRequest.DONE) {
+                    if (xhr.status === 200) {
+                        localStorage.removeItem('resetToken');
+                        localStorage.removeItem('resetEmail');
+                        window.location.href = '/login';
+                    } else {
+                        document.getElementById('password-error-message').textContent = 'Password reset failed. Please try again.';
+                    }
+                }
+            };
+
+            xhr.onerror = function() {
+                document.getElementById('password-error-message').textContent = 'Network error, please try again.';
+            };
+
+            xhr.send(JSON.stringify({ token, newPassword }));
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('emailForm').addEventListener('submit', handleEmailSubmission);
+            document.getElementById('emojiForm').addEventListener('submit', handleEmojiSubmission);
+            document.getElementById('passwordForm').addEventListener('submit', handlePasswordResetSubmission);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,31 @@
+{
+  "name": "Tetraion Temp",
+  "version": "1.0.0",
+  "description": ".",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "@fastify/static": "^7.0.4",
+    "@supabase/supabase-js": "^2.45.3",
+    "axios": "^1.7.7",
+    "chokidar": "^3.6.0",
+    "easy-waf": "^0.6.0",
+    "fastify": "^4.28.1",
+    "fastify-cookie": "^5.6.1",
+    "firebase": "^10.13.1",
+    "firebase-admin": "^12.4.0",
+    "hpp": "^0.2.3",
+    "isomorphic-dompurify": "^2.15.0",
+    "jsonwebtoken": "^9.0.2",
+    "pino": "^9.4.0",
+    "pino-pretty": "^11.2.2",
+    "socket.io": "^4.7.5",
+    "validator": "^13.12.0",
+    "xss": "^1.0.15",
+    "xss-clean": "^0.1.4"
+  },
+  "author": "TETRAION",
+  "license": "ISC"
+}

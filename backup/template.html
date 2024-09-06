@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="src/layout.js" defer></script>
+    <script src="module/menu.js" defer></script>
+    <script src="src/menu.js" defer></script>
+    <script src="src/background.js" defer></script>
+    <script src="src/analytic.js" defer></script>
+    <script src="module/dashcard.js" defer></script>
+    <script src="src/validate.js" defer></script>
+    <script src="src/user.js" defer></script>
+    <style>
+        body {
+            color: white;
+        }
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            padding: 0 0.8rem;
+        }
+        .balance-container {
+            background-color: rgba(255, 255, 255, 0.3);
+            padding-top: 0.8%;
+            padding-left: 0.5%;
+            padding-right: 0.5%;         
+            border-radius: 10px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            border: 1.5px solid rgba(255, 255, 255, 0.4);
+            
+        }
+        .toggle-button {
+            cursor: pointer;
+            font-size: 24px;
+        }
+        .icon-container {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            position: relative;
+        }
+        .icon-button {
+            font-size: 24px;
+            cursor: pointer;
+            position: relative;
+        }
+        .badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            width: 10px;
+            height: 10px;
+            background-color: red;
+            border-radius: 50%;
+            border: 2px solid white;
+            display: none;
+        }
+        .flex-body {
+            margin-right: 60px;
+            padding: 1rem;
+        }
+        .placeholder {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            height: 22%; 
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            width: 98%;
+            margin-top: auto;
+            margin-left: auto;
+            margin-right: auto;
+            color: silver;
+        }
+        .placeholder-header {
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            color: white;
+        }
+        .placeholder-description {
+            font-size: 0.99rem; 
+        }
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+    </style>
+</head>
+<body>
+<script>
+    $(document).ready(async function() {
+        const includeHeader = true;
+        const includeFooter = true;
+
+        createLayout(includeHeader, includeFooter);
+
+        if (includeHeader) {
+            const header = $('header');
+            header.html(`
+                <div class="header-content">
+                    <div class="balance-container" id="balance-container"></div>
+                    <div class="icon-container">
+                        <span class="material-icons icon-button" id="inbox-button">inbox
+                            <span class="badge" id="inbox-badge"></span>
+                        </span>
+                        <span class="material-icons icon-button" id="notifications-button">notifications
+                            <span class="badge" id="notifications-badge"></span>
+                        </span>
+                        <span class="material-icons toggle-button" id="toggle-button">menu</span>
+                    </div>
+                </div>
+            `);
+        }
+
+        const main = $('.flex-body');
+        main.html(`
+            The body, you can add anything here
+        `);
+
+        $('#toggle-button').on('click', function() {
+            const sidebar = $('#sidebar');
+            if (sidebar.length) {
+                sidebar.toggleClass('is-active');
+            }
+        });
+
+        $('#inbox-button').on('click', function() {
+            const lastMessageId = sessionStorage.getItem('lastMessageId');
+            localStorage.setItem('lastReadMessageId', lastMessageId);
+
+            $('#inbox-badge').hide();
+
+            window.location.href = '/chat';
+        });
+
+        $('#notifications-button').on('click', function() {
+            window.location.href = '/notifications';
+        });
+
+        if (typeof validateRequest === 'function') {
+            await validateRequest();
+        }
+       
+        if (typeof fetchUserData === 'function') {
+            const data = await fetchUserData();
+            if (data && data.success) {
+                updateBalance(balance);
+            }
+        }
+    });
+
+    function updateBalance(balance) {
+        console.log('Updating balance to:', balance);
+        
+        const $balanceContainer = $('#balance-container');
+        
+        if ($balanceContainer.length && balance !== undefined) {
+            $balanceContainer.text(`$${parseFloat(balance).toFixed(2)}`);
+        } else {
+            console.error('Balance container not found or balance is undefined');
+        }
+    }
+</script>
+</body>
+</html>

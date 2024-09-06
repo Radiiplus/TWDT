@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verification</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <script src="src/layout.js" defer></script>
+    <script src="src/background.js" type="module" defer></script>
+    <style>
+        body {
+            background-color: rgba(85, 85, 85, 0.4);
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .verification-card {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 15px;
+            padding: 20px;
+            width: 90%;
+            
+            text-align: center;
+            background-color: rgba(85, 85, 85, 0.4);
+        }
+
+        .verification-card h2 {
+            margin-bottom: 20px;
+            color: white;
+        }
+
+        .verification-card .material-icons {
+            font-size: 48px;
+            color: #007bff;
+            margin-bottom: 20px;
+        }
+
+        .verification-card p {
+            margin-bottom: 20px;
+            color: white;
+        }
+
+        .verification-card button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin-top: 10px;
+        }
+
+        .verification-card button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="verification-card">
+        <span class="material-icons">email</span>
+        <h2>Check Your Email</h2>
+        <p>We’ve sent a verification link to your email. Please check your inbox, click the verification link and login.</p>
+        <button onclick="window.location.href='/login'">Go to Login</button>
+    </div>
+</body>
+</html>

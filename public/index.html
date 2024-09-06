@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loading</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <script src="src/dloader.js"></script>
+    <script src="src/background.js" type="module" defer></script>
+</head>
+<body>
+    <div id="mainContent" style="display:none;">
+        <div class="header">
+            <p>Header content</p>
+        </div>
+        <div class="content">
+            <p>Main content</p>
+        </div>
+        <div class="footer">
+            <p>Footer content</p>
+        </div>
+    </div>
+
+    <script>
+        const globalLoader = new DynamicLoader({ color: 'green', size: 'big', type: 'spinner' });
+        globalLoader.wrapFetch();
+
+        const containerElement = document.getElementById('mainContent');
+        const containerLoader = new DynamicLoader({
+            color: 'blue',
+            size: 'big',
+            type: 'spinner',
+            useOverlay: true,
+            targetElement: containerElement
+        });
+
+        containerLoader.show();
+
+        setTimeout(() => {
+            containerLoader.hide();
+            document.getElementById('mainContent').style.display = 'block';
+            window.location.href = '/dashboard';
+        }, 5000);
+    </script>
+</body>
+</html>

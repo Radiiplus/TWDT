@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+    <script src="src/layout.js" defer></script>
+    <script src="src/background.js" type="module" defer></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <style>
+        body {
+            background-color: #333;
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .circle-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 80%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .flex-body {
+            display: flex;
+            flex-direction: column;
+            height: 90vh;
+        }
+
+        .login-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .login-card {
+            background: rgba(255, 255, 255, 0.4);
+            border: 1px solid gray;
+            border-radius: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            padding: 5%;
+            color: Gray;
+            width: 85%;
+            position: relative;
+        }
+
+        .login-card h2 {
+            text-align: center;
+            margin-bottom: 5%;
+            font-weight: bold;
+            font-size: 1.5rem;
+        }
+
+        .login-card form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .login-card input {
+            padding: 3.5%;
+            margin-bottom: 5%;
+            border: 0.8px solid #ddd;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .login-card input::placeholder {
+            color: #888;
+        }
+
+        .login-card input.invalid {
+            border-color: red;
+        }
+
+        .login-card input.valid {
+            border-color: green;
+        }
+
+        .error-message {
+            color: red;
+            font-size: 14px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .login-card button {
+            padding: 3%;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1rem;
+            position: relative;
+            overflow: hidden;
+            text-align: center;
+            opacity: 70%;
+        }
+
+        .login-card button:hover {
+            background-color: #0056b3;
+        }
+
+        .login-card .forgot-password,
+        .login-card .signup-link {
+            text-align: center;
+            margin-top: 15px;
+            color: #007bff;
+            cursor: pointer;
+        }
+
+        .login-card .forgot-password:hover,
+        .login-card .signup-link:hover {
+            text-decoration: underline;
+        }
+
+        .loading-spinner {
+            display: none;
+            position: absolute;
+            top: 20%;
+            left: 45%;
+            transform: translate(-50%, -50%);
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top: 3px solid #007bff;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .login-card button.loading span {
+            visibility: hidden;
+        }
+
+        .nav-icon-container {
+            opacity: 0%;
+        }
+    </style>
+</head>
+<body>
+    <div class="circle-container">
+        <div class="blurred-circle circle1"></div>
+        <div class="blurred-circle circle2"></div>
+        <div class="blurred-circle circle3"></div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            createLayout(false, false);
+
+            const mainContent = document.querySelector('.flex-body');
+            if (mainContent) {
+                mainContent.innerHTML = `
+                    <div class="login-container">
+                        <div class="login-card">
+                            <h2>Login</h2>
+                            <form id="loginForm">
+                                <input type="text" id="login-input" name="usernameOrEmail" placeholder="Username or Email" required>
+                                <input type="password" id="password" name="password" placeholder="Password" required>
+                                <div id="error-message" class="error-message"></div>
+                                <button type="submit" id="loginButton">
+                                    <span>Login</span>
+                                    <div id="loading-spinner" class="loading-spinner"></div>
+                                </button>
+                            </form>
+                            <p class="forgot-password" id="forgot-password-link">Forgot password?</p>
+                            <p class="signup-link">Don't have an account? <a href="/signup">Sign Up</a></p>
+                        </div>
+                    </div>
+                `;
+            }
+        });
+    </script>
+
+    <script>
+        async function handleLoginSubmission(event) {
+            event.preventDefault();
+
+            const button = document.getElementById('loginButton');
+            const spinner = document.getElementById('loading-spinner');
+            button.classList.add('loading');
+            spinner.style.display = 'block';
+            button.disabled = true;
+
+            const usernameOrEmail = document.getElementById('login-input').value;
+            const password = document.getElementById('password').value;
+
+            const loginField = document.getElementById('login-input');
+            const passwordField = document.getElementById('password');
+            const errorMessage = document.getElementById('error-message');
+
+            loginField.classList.remove('invalid', 'valid');
+            passwordField.classList.remove('invalid', 'valid');
+            errorMessage.textContent = '';
+
+            if (usernameOrEmail.length === 0) {
+                loginField.classList.add('invalid');
+                errorMessage.textContent = 'Username or email is required.';
+                button.classList.remove('loading');
+                spinner.style.display = 'none';
+                button.disabled = false;
+                return;
+            }
+
+            if (password.length < 6) {
+                passwordField.classList.add('invalid');
+                errorMessage.textContent = 'Password must be at least 6 characters long.';
+                button.classList.remove('loading');
+                spinner.style.display = 'none';
+                button.disabled = false;
+                return;
+            } else {
+                passwordField.classList.add('valid');
+            }
+
+            try {
+                const response = await fetch('/access/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ usernameOrEmail, password })
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    if (!result.verified) {
+                        window.location.href = '/confirm'; 
+                    } else {
+                        window.location.href = '/dashboard'; 
+                    }
+                } else {
+                    errorMessage.textContent = result.message || 'Login failed. Please check your credentials and try again.';
+                }
+            } catch (error) {
+                errorMessage.textContent = 'Network error, please try again.';
+            } finally {
+                button.classList.remove('loading');
+                spinner.style.display = 'none';
+                button.disabled = false;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('loginForm').addEventListener('submit', handleLoginSubmission);
+            document.getElementById('forgot-password-link').addEventListener('click', function() {
+                window.location.href = '/reset';
+            });
+        });
+    </script>
+</body>
+</html>
