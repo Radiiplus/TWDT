@@ -196,48 +196,47 @@
         });
 
         async function validateField(fieldId, url, fieldType) {
-            const field = document.getElementById(fieldId);
-            const value = field.value;
-            const errorDisplay = document.getElementById('error-message');
+    const field = document.getElementById(fieldId);
+    const value = field.value;
+    const errorDisplay = document.getElementById('error-message');
 
-            if (value.length === 0) return;
+    if (value.length === 0) return;
 
-            try {
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ [fieldType]: value })
-                });
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ [fieldType]: value })
+        });
 
-                const data = await response.json();
+        const data = await response.json();
 
-                if (response.ok) {
-                    if (data.exists) {
-                        field.classList.add('invalid');
-                        field.classList.remove('valid');
-                        errorDisplay.textContent = data.message;
-                        errorDisplay.style.display = 'block';
-                    } else {
-                        field.classList.add('valid');
-                        field.classList.remove('invalid');
-                        errorDisplay.style.display = 'none';
-                    }
-                } else {
-                    field.classList.add('invalid');
-                    errorDisplay.textContent = 'An unexpected error occurred.';
-                    errorDisplay.style.display = 'block';
-                }
-            } catch (error) {
+        if (response.ok) {
+            if (data.exists) {
                 field.classList.add('invalid');
-                errorDisplay.textContent = 'Network or server error.';
+                field.classList.remove('valid');
+                errorDisplay.textContent = data.message;
                 errorDisplay.style.display = 'block';
+            } else {
+                field.classList.add('valid');
+                field.classList.remove('invalid');
+                errorDisplay.style.display = 'none';
             }
+        } else {
+            field.classList.add('invalid');
+            errorDisplay.textContent = data.message || 'An unexpected error occurred.';
+            errorDisplay.style.display = 'block';
         }
+    } catch (error) {
+        field.classList.add('invalid');
+        errorDisplay.textContent = 'Network or server error.';
+        errorDisplay.style.display = 'block';
+    }
+}
 
-        async function validateUsername() {
-            await validateField('username', '/access/check', 'username');
-        }
-
+async function validateUsername() {
+    await validateField('username', '/access/check', 'username');
+}
         async function validateEmail() {
             await validateField('email', '/access/check', 'email');
         }
@@ -268,59 +267,64 @@
         let isSubmitting = false;
 
         async function handleFormSubmission(event) {
-            event.preventDefault();
+    event.preventDefault();
 
-            if (isSubmitting) return;
-            isSubmitting = true;
+    if (isSubmitting) return;
+    isSubmitting = true;
 
-            const button = document.getElementById('signupButton');
-            const loadingSpinner = document.getElementById('loading-spinner');
-            const errorMessage = document.getElementById('error-message');
+    const button = document.getElementById('signupButton');
+    const loadingSpinner = document.getElementById('loading-spinner');
+    const errorMessage = document.getElementById('error-message');
 
-            button.classList.add('loading');
-            loadingSpinner.style.display = 'block';
+    button.classList.add('loading');
+    loadingSpinner.style.display = 'block';
 
-            const formData = {
-                username: document.getElementById('username').value,
-                email: document.getElementById('email').value,
-                password: document.getElementById('password').value
-            };
+    const formData = {
+        username: document.getElementById('username').value,
+        email: document.getElementById('email').value,
+        password: document.getElementById('password').value
+    };
 
-            try {
-                const response = await fetch('/access/signup', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(formData)
-                });
+    try {
+        const response = await fetch('/access/signup', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData)
+        });
 
-                const data = await response.json();
+        const data = await response.json();
 
-                if (response.ok && data.success) {
-                    window.location.href = '/confirm';
-                } else {
-                    errorMessage.style.display = 'block';
-                    errorMessage.innerHTML = formatErrorMessage(data);
-                }
-            } catch (error) {
-                console.error('Request Error:', error);
-                errorMessage.style.display = 'block';
-                errorMessage.textContent = 'An error occurred during registration. Please try again later.';
-            } finally {
-                button.classList.remove('loading');
-                loadingSpinner.style.display = 'none';
-                isSubmitting = false;
+        if (response.ok && data.success) {
+            window.location.href = '/confirm';
+        } else {
+            errorMessage.style.display = 'block';
+            // Directly display the message
+            if (data.message) {
+                errorMessage.textContent = data.message;
+            } else {
+                errorMessage.innerHTML = formatErrorMessage(data);
             }
         }
+    } catch (error) {
+        console.error('Request Error:', error);
+        errorMessage.style.display = 'block';
+        errorMessage.textContent = 'An error occurred during registration. Please try again later.';
+    } finally {
+        button.classList.remove('loading');
+        loadingSpinner.style.display = 'none';
+        isSubmitting = false;
+    }
+}
 
-        function formatErrorMessage(data) {
-            let formattedMessage = '';
-            for (const key in data) {
-                if (data.hasOwnProperty(key)) {
-                    formattedMessage += `<strong>${key}</strong>: ${data[key]}<br>`;
-                }
-            }
-            return formattedMessage;
+function formatErrorMessage(data) {
+    let formattedMessage = '';
+    for (const key in data) {
+        if (key !== 'success' && data.hasOwnProperty(key)) {
+            formattedMessage += `<strong>${key}</strong>: ${data[key]}<br>`;
         }
+    }
+    return formattedMessage;
+}
 
         document.addEventListener('DOMContentLoaded', function() {
             const form = document.getElementById('signupForm');
